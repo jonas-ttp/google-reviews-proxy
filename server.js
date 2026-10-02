@@ -8,19 +8,36 @@ const PORT = process.env.PORT || 3000;
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 // Add your HubSpot domain(s) here.
 // e.g. "https://www.yourdomain.com" or "https://12345678.hs-sites.com"
+// Explicitly listed origins (comma-separated in env var)
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
+
+// Wildcard patterns — allows all HubSpot preview/sandbox/live domains
+const ALLOWED_PATTERNS = [
+  /^https:\/\/[\w-]+\.hs-sites\.com$/,       // HubSpot sandbox & live
+  /^https:\/\/[\w-]+\.hubspotpagebuilder\.com$/, // HubSpot page builder preview
+];
 
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (e.g. curl, Postman, server-to-server)
       if (!origin) return callback(null, true);
-      if (ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
+
+      // Check explicit list
+      if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+
+      // Check wildcard patterns (covers all HubSpot domains automatically)
+      if (ALLOWED_PATTERNS.some((pattern) => pattern.test(origin))) {
         return callback(null, true);
       }
+
+      // If no ALLOWED_ORIGINS configured at all, allow everything (open mode)
+      if (ALLOWED_ORIGINS.length === 0) return callback(null, true);
+
+      console.warn("CORS blocked:", origin);
       callback(new Error(`CORS: origin ${origin} not allowed`));
     },
   })
