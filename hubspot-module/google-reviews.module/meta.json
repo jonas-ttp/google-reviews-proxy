@@ -1,0 +1,37 @@
+{
+  "label": "Google Reviews",
+  "css_assets": [],
+  "js_assets": [],
+  "other_assets": [],
+  "global": false,
+  "is_available_for_new_content": true,
+  "fields": [
+    {
+      "name": "proxy_url",
+      "label": "Reviews API URL",
+      "type": "text",
+      "required": true,
+      "default": "https://api.yourdomain.com/reviews",
+      "help_text": "The URL of your Google Reviews proxy server (e.g. https://api.yourdomain.com/reviews)"
+    },
+    {
+      "name": "heading",
+      "label": "Section Heading",
+      "type": "text",
+      "default": "What Our Customers Say"
+    },
+    {
+      "name": "show_overall_rating",
+      "label": "Show Overall Rating",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "name": "max_reviews",
+      "label": "Max Reviews to Show",
+      "type": "number",
+      "default": 5,
+      "help_text": "Google returns up to 5 reviews. Set between 1–5."
+    }
+  ]
+}
