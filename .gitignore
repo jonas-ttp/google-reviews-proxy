@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Local environment secrets — set these in GoDaddy cPanel instead
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
