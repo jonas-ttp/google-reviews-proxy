@@ -13,13 +13,13 @@
   font-size: 2rem;
 }
 
-/* ── Summary bar ───────────────────────────────────────────────────────────── */
+/* ── Overall summary bar ───────────────────────────────────────────────────── */
 .gr-summary {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 20px;
-  margin-bottom: 36px;
+  margin-bottom: 48px;
   padding: 20px;
   border: 1px solid #e8e8e8;
   border-radius: 12px;
@@ -44,24 +44,45 @@
   color: #70757a;
 }
 
+/* ── Review grid ───────────────────────────────────────────────────────────── */
+.gr-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 32px;
+  align-items: start;
+}
+
+/* ── Review card ───────────────────────────────────────────────────────────── */
+.gr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
 /* ── Stars ─────────────────────────────────────────────────────────────────── */
 .gr-stars {
   display: flex;
-  gap: 2px;
+  gap: 4px;
 }
 
 .gr-star {
-  font-size: 1.2rem;
-  color: #dadce0;
+  font-size: 2rem;
+  color: #e0e0e0;
+  line-height: 1;
 }
 
 .gr-star.filled {
-  color: #fbbc04;
+  color: #f5c518;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }
 
 .gr-star.half {
   position: relative;
-  color: #dadce0;
+  color: #e0e0e0;
 }
 
 .gr-star.half::before {
@@ -70,100 +91,120 @@
   left: 0;
   width: 50%;
   overflow: hidden;
-  color: #fbbc04;
+  color: #f5c518;
 }
 
-/* ── Review grid ───────────────────────────────────────────────────────────── */
-.gr-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+/* ── Card body ─────────────────────────────────────────────────────────────── */
+.gr-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  font-style: italic;
+  color: #111;
+  margin: 4px 0 0;
+  line-height: 1.4;
 }
 
-/* ── Review card ───────────────────────────────────────────────────────────── */
-.gr-card {
-  background: #fff;
-  border: 1px solid #e8e8e8;
-  border-radius: 12px;
-  padding: 20px;
+.gr-card-title::before { content: "\201C"; }
+.gr-card-title::after  { content: "\201D"; }
+
+.gr-review-text {
+  font-size: 0.88rem;
+  font-style: italic;
+  line-height: 1.7;
+  color: #333;
+  margin: 0;
+}
+
+.gr-review-text::before { content: "\201C"; }
+.gr-review-text::after  { content: "\201D"; }
+
+/* ── Author section ────────────────────────────────────────────────────────── */
+.gr-author {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  transition: box-shadow 0.2s ease;
-}
-
-.gr-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.gr-card-header {
-  display: flex;
   align-items: center;
+  width: 100%;
+  margin-top: 8px;
   gap: 12px;
 }
 
+/* Circular photo with dashed blue border + quote badge */
+.gr-photo-wrap {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  flex-shrink: 0;
+}
+
 .gr-avatar {
-  width: 44px;
-  height: 44px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  flex-shrink: 0;
-  background: #e8e8e8;
+  display: block;
+  margin: 5px auto 0;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Dashed circle border */
+.gr-photo-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2.5px dashed #2f9fd6;
+}
+
+/* Gold quote badge bottom-right */
+.gr-photo-wrap::after {
+  content: "\275D";
+  position: absolute;
+  bottom: 4px;
+  right: 2px;
+  width: 28px;
+  height: 28px;
+  background: #f5c518;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: #fff;
+  line-height: 28px;
+  text-align: center;
 }
 
 .gr-avatar-fallback {
-  width: 44px;
-  height: 44px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  background: #4285f4;
+  background: #2f9fd6;
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.1rem;
-  flex-shrink: 0;
-}
-
-.gr-author-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  font-size: 1.8rem;
+  margin: 5px auto 0;
 }
 
 .gr-author-name {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #202124;
+  font-size: 0.88rem;
+  color: #444;
+  text-align: center;
+  font-weight: 400;
 }
 
-.gr-time {
-  font-size: 0.78rem;
-  color: #70757a;
-}
-
-.gr-card-stars {
-  margin: 2px 0;
-}
-
-.gr-card-stars .gr-star {
-  font-size: 1rem;
-}
-
-.gr-review-text {
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: #3c4043;
-  margin: 0;
-}
-
+/* ── Read more ─────────────────────────────────────────────────────────────── */
 .gr-read-more {
   background: none;
   border: none;
-  color: #4285f4;
+  color: #2f9fd6;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   padding: 0;
+  font-style: italic;
 }
 
 /* ── Loading spinner ───────────────────────────────────────────────────────── */
@@ -181,7 +222,7 @@
   width: 24px;
   height: 24px;
   border: 3px solid #e8e8e8;
-  border-top-color: #4285f4;
+  border-top-color: #f5c518;
   border-radius: 50%;
   animation: gr-spin 0.8s linear infinite;
 }
@@ -190,7 +231,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Error state ───────────────────────────────────────────────────────────── */
+/* ── Error ─────────────────────────────────────────────────────────────────── */
 .gr-error {
   grid-column: 1 / -1;
   text-align: center;
@@ -200,13 +241,13 @@
 }
 
 /* ── Responsive ────────────────────────────────────────────────────────────── */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
+  .gr-list {
+    grid-template-columns: 1fr;
+  }
+
   .gr-summary {
     flex-direction: column;
     text-align: center;
-  }
-
-  .gr-list {
-    grid-template-columns: 1fr;
   }
 }

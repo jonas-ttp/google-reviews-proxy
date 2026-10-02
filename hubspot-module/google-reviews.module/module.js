@@ -2,7 +2,7 @@
   "use strict";
 
   // ── Config from HubL (set in module.html) ────────────────────────────────
-  var config = window.GR_CONFIG || {};
+  var config      = window.GR_CONFIG || {};
   var PROXY_URL   = config.proxyUrl   || "";
   var MAX_REVIEWS = config.maxReviews || 5;
   var SHOW_SUMMARY = config.showSummary !== false;
@@ -18,15 +18,13 @@
     return;
   }
 
-  // ── Fetch reviews ─────────────────────────────────────────────────────────
+  // ── Fetch ─────────────────────────────────────────────────────────────────
   fetch(PROXY_URL)
     .then(function (res) {
       if (!res.ok) throw new Error("Server returned " + res.status);
       return res.json();
     })
-    .then(function (data) {
-      render(data);
-    })
+    .then(render)
     .catch(function (err) {
       console.error("Google Reviews error:", err);
       showError("Could not load reviews. Please try again later.");
@@ -34,17 +32,16 @@
 
   // ── Render ────────────────────────────────────────────────────────────────
   function render(data) {
-    // Overall rating summary
+    // Overall summary
     if (SHOW_SUMMARY && overallNumberEl) {
       var rating = data.rating || 0;
       overallNumberEl.textContent = rating.toFixed(1);
-      if (overallStarsEl) overallStarsEl.innerHTML = buildStars(rating);
+      if (overallStarsEl) overallStarsEl.innerHTML = buildStars(rating, "1.4rem");
       if (totalEl) totalEl.textContent = (data.totalRatings || 0).toLocaleString() + " Google reviews";
     }
 
-    // Reviews list
+    // Cards
     var reviews = (data.reviews || []).slice(0, MAX_REVIEWS);
-
     if (!reviews.length) {
       listEl.innerHTML = '<p class="gr-error">No reviews available.</p>';
       return;
@@ -52,91 +49,97 @@
 
     listEl.innerHTML = reviews.map(buildCard).join("");
 
-    // Wire up "Read more" toggles
+    // Read-more toggles
     listEl.querySelectorAll(".gr-read-more").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var full  = btn.previousElementSibling;
-        var short = full.previousElementSibling;
-        if (short.style.display === "none") {
-          short.style.display = "";
-          full.style.display  = "none";
-          btn.textContent = "Read more";
-        } else {
-          short.style.display = "none";
-          full.style.display  = "";
-          btn.textContent = "Read less";
-        }
+        var shortEl = btn.previousElementSibling.previousElementSibling;
+        var fullEl  = btn.previousElementSibling;
+        var isShowing = shortEl.style.display === "none";
+        shortEl.style.display = isShowing ? "" : "none";
+        fullEl.style.display  = isShowing ? "none" : "";
+        btn.textContent = isShowing ? "Read more" : "Read less";
       });
     });
   }
 
   // ── Card builder ──────────────────────────────────────────────────────────
-  var MAX_TEXT = 150;
+  var MAX_TEXT = 160;
 
   function buildCard(review) {
-    var text      = (review.text || "").trim();
-    var shortText = text.length > MAX_TEXT ? text.slice(0, MAX_TEXT).trim() + "…" : text;
-    var hasMore   = text.length > MAX_TEXT;
+    var text     = (review.text || "").trim();
+    var title    = extractTitle(text);       // first sentence → bold heading
+    var hasMore  = text.length > MAX_TEXT;
+    var shortTxt = hasMore ? text.slice(0, MAX_TEXT).trim() + "…" : text;
+
+    var textBlock = hasMore
+      ? [
+          '<p class="gr-review-text" style="display:none">' + escHtml(text) + "</p>",
+          '<p class="gr-review-text">' + escHtml(shortTxt) + "</p>",
+          '<button class="gr-read-more">Read more</button>',
+        ].join("")
+      : '<p class="gr-review-text">' + escHtml(text) + "</p>";
 
     return [
       '<div class="gr-card">',
-        '<div class="gr-card-header">',
-          buildAvatar(review),
-          '<div class="gr-author-info">',
-            '<span class="gr-author-name">' + escHtml(review.author) + '</span>',
-            '<span class="gr-time">' + escHtml(review.time) + '</span>',
-          '</div>',
-        '</div>',
-        '<div class="gr-card-stars">' + buildStars(review.rating) + '</div>',
-        hasMore
-          ? [
-              '<p class="gr-review-text">' + escHtml(shortText) + '</p>',
-              '<p class="gr-review-text" style="display:none">' + escHtml(text) + '</p>',
-              '<button class="gr-read-more">Read more</button>',
-            ].join("")
-          : '<p class="gr-review-text">' + escHtml(text) + '</p>',
-      '</div>',
+        // 1. Stars
+        buildStars(review.rating, "2rem"),
+        // 2. Title (first sentence)
+        '<p class="gr-card-title">' + escHtml(title) + "</p>",
+        // 3. Review text
+        textBlock,
+        // 4. Author (photo + name)
+        '<div class="gr-author">',
+          buildPhotoWrap(review),
+          '<span class="gr-author-name">' + escHtml(review.author) + "</span>",
+        "</div>",
+      "</div>",
     ].join("");
   }
 
-  // ── Avatar builder ────────────────────────────────────────────────────────
-  function buildAvatar(review) {
-    if (review.authorPhoto) {
-      return (
-        '<img class="gr-avatar" src="' + escAttr(review.authorPhoto) + '" ' +
-        'alt="' + escAttr(review.author) + '" ' +
-        'onerror="this.outerHTML=\'' + escAttr(fallbackAvatar(review.author)) + '\'">'
-      );
-    }
-    return fallbackAvatar(review.author);
+  // ── Extract first sentence as card title ──────────────────────────────────
+  function extractTitle(text) {
+    // Split on sentence-ending punctuation followed by a space or end
+    var match = text.match(/^.{10,80}?[.!?](?:\s|$)/);
+    if (match) return match[0].trim();
+    // Fallback: first 60 chars
+    return text.slice(0, 60).trim() + (text.length > 60 ? "…" : "");
   }
 
-  function fallbackAvatar(name) {
-    var initial = (name || "?").charAt(0).toUpperCase();
-    return '<div class="gr-avatar-fallback">' + initial + '</div>';
+  // ── Photo wrap with dashed ring + quote badge ─────────────────────────────
+  function buildPhotoWrap(review) {
+    var inner = review.authorPhoto
+      ? '<img class="gr-avatar" src="' + escAttr(review.authorPhoto) + '" ' +
+          'alt="' + escAttr(review.author) + '" ' +
+          'onerror="this.outerHTML=\'<div class=&quot;gr-avatar-fallback&quot;>' +
+          escAttr((review.author || "?").charAt(0).toUpperCase()) +
+          "</div>\\'\">"
+      : '<div class="gr-avatar-fallback">' +
+          escHtml((review.author || "?").charAt(0).toUpperCase()) +
+        "</div>";
+
+    return '<div class="gr-photo-wrap">' + inner + "</div>";
   }
 
   // ── Star builder ──────────────────────────────────────────────────────────
-  function buildStars(rating) {
+  function buildStars(rating, size) {
     var stars = "";
     for (var i = 1; i <= 5; i++) {
       if (rating >= i) {
-        stars += '<span class="gr-star filled">★</span>';
+        stars += '<span class="gr-star filled" style="font-size:' + size + '">★</span>';
       } else if (rating >= i - 0.5) {
-        stars += '<span class="gr-star half">★</span>';
+        stars += '<span class="gr-star half"  style="font-size:' + size + '">★</span>';
       } else {
-        stars += '<span class="gr-star">★</span>';
+        stars += '<span class="gr-star"        style="font-size:' + size + '">★</span>';
       }
     }
-    return '<div class="gr-stars">' + stars + '</div>';
-  }
-
-  // ── Error state ───────────────────────────────────────────────────────────
-  function showError(msg) {
-    if (listEl) listEl.innerHTML = '<p class="gr-error">' + escHtml(msg) + '</p>';
+    return '<div class="gr-stars">' + stars + "</div>";
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
+  function showError(msg) {
+    if (listEl) listEl.innerHTML = '<p class="gr-error">' + escHtml(msg) + "</p>";
+  }
+
   function escHtml(str) {
     return String(str || "")
       .replace(/&/g, "&amp;")
